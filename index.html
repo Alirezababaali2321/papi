@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدیریت پارچه‌ها</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1e1e2f; /* رنگ پس‌زمینه تیره */
+            color: #fff; /* رنگ متن سفید */
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #00aaff; /* رنگ آبی روشن */
+            margin-bottom: 20px;
+        }
+
+        #adminView, #fabricForm {
+            margin-top: 20px;
+            background: #2c2c3e; /* رنگ پس‌زمینه */
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+
+        p {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #00aaff; /* رنگ حاشیه پارچه‌ها */
+            border-radius: 5px;
+            background: #3e3e4e; /* رنگ پس‌زمینه پارچه‌ها */
+        }
+
+        label {
+            margin-top: 10px;
+            display: block;
+            font-weight: bold;
+        }
+
+        input {
+            margin-bottom: 15px;
+            padding: 10px;
+            width: calc(100% - 22px); /* عرض کامل با احتساب padding و border */
+            border: 1px solid #00aaff; /* رنگ حاشیه آبی */
+            border-radius: 5px;
+            background-color: #3e3e4e; /* رنگ پس‌زمینه ورودی */
+            color: #fff; /* رنگ متن ورودی */
+            transition: border-color 0.3s; /* انیمیشن تغییر رنگ حاشیه */
+        }
+
+        input:focus {
+            border-color: #0088cc; /* رنگ حاشیه هنگام فوکوس */
+            outline: none; /* حذف outline */
+        }
+
+        button {
+            padding: 10px;
+            background-color: #00aaff; /* رنگ دکمه */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s, transform 0.3s; /* انیمیشن */
+            width: 100%; /* عرض کامل */
+        }
+
+        button:hover {
+            background-color: #0088cc; /* رنگ دکمه هنگام هاور */
+            transform: scale(1.05); /* بزرگتر شدن دکمه هنگام هاور */
+        }
+
+        button:active {
+            transform: scale(0.95); /* کوچک‌تر شدن دکمه هنگام کلیک */
+        }
+    </style>
+</head>
+<body>
+    <h1>مدیریت پارچه‌ها</h1>
+
+    <div id="adminSection" style="display: none;">
+        <h2>لیست پارچه‌ها برای مدیر</h2>
+        <div id="adminView"></div>
+        <a href="#" onclick="logout()">خروج از حساب ادمین</a>
+    </div>
+
+    <div id="loginSection">
+        <h2>ورود به حساب ادمین</h2>
+        <label for="adminPassword">رمز عبور:</label>
+        <input type="password" id="adminPassword">
+        <button onclick="login()">ورود</button>
+    </div>
+
+    <div id="fabricSection">
+        <h2>اضافه کردن پارچه</h2>
+        <form id="fabricForm">
+            <label for="name">نام فرد:</label>
+            <input type="text" id="name" required>
+            
+            <label for="description">توضیحات:</label>
+            <input type="text" id="description" required>
+            
+            <label for="fabric_type">نوع پارچه:</label>
+            <input type="text" id="fabric_type" required>
+            
+            <label for="meters">متر:</label>
+            <input type="number" id="meters" required>
+            
+            <label for="price_per_meter">قیمت به ازای متر:</label>
+            <input type="number" id="price_per_meter" required>
+            
+            <button type="submit">اضافه کردن</button>
+        </form>
+    </div>
+
+    <script>
+        const jsonFileUrl = 'fabrics.json'; // لینک به فایل JSON در GitHub
+
+        function login() {
+            const password = document.getElementById('adminPassword').value;
+            if (password === 'علیرضاپ') {
+                document.getElementById('adminSection').style.display = 'block';
+                document.getElementById('loginSection').style.display = 'none';
+                loadFabrics();
+            } else {
+                alert('رمز عبور اشتباه است!');
+            }
+        }
+
+        function logout() {
+            document.getElementById('adminSection').style.display = 'none';
+            document.getElementById('loginSection').style.display = 'block';
+        }
+
+        function loadFabrics() {
+            fetch(jsonFileUrl)
+                .then(response => response.json())
+                .then(fabrics => {
+                    const adminView = document.getElementById('adminView');
+                    adminView.innerHTML = '';
+                    fabrics.forEach(fabric => {
+                        adminView.innerHTML += `<p>نوع پارچه: ${fabric.fabric_type}, متر: ${fabric.meters}, قیمت: ${fabric.price_per_meter} تومان</p>`;
+                    });
+                })
+                .catch(error => console.error('Error loading fabrics:', error));
+        }
+
+        document.getElementById('fabricForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value;
+            const description = document.getElementById('description').value;
+            const fabricType = document.getElementById('fabric_type').value;
+            const meters = parseFloat(document.getElementById('meters').value);
+            const pricePerMeter = parseFloat(document.getElementById('price_per_meter').value);
+
+            fetch(jsonFileUrl)
+                .then(response => response.json())
+                .then(fabrics => {
+                    fabrics.push({ name, description, fabric_type: fabricType, meters, price_per_meter: pricePerMeter });
+                    return fetch(jsonFileUrl, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(fabrics)
+                    });
+                })
+                .then(() => {
+                    alert("پارچه با موفقیت اضافه شد!");
+                    this.reset();
+                    loadFabrics(); // بارگذاری مجدد پارچه‌ها
+                })
+                .catch(error => console.error('Error updating fabrics:', error));
+        });
+    </script>
+</body>
+</html>
